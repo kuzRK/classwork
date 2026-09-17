@@ -4,7 +4,7 @@
 #include <vector>
 #include <chrono>
 #include <future>
-#include <algorithm>
+
 
 class Clicker
 {
@@ -61,10 +61,6 @@ int main(int argc, char **argv)
   }
 
   data_t values(size, 1);
-  std::vector< double > times;
-  times.reserve(5);
-
-  value_t final_sum = 0;
   const size_t block_size = size / thread_count;
 
   std::vector< std::future< value_t > > futures;

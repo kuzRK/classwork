@@ -65,46 +65,37 @@ int main(int argc, char **argv)
   times.reserve(5);
 
   value_t final_sum = 0;
-  for (size_t measurement = 0; measurement < 5; ++measurement)
+  const size_t block_size = size / thread_count;
+
+  std::vector< std::future< value_t > > futures;
+  futures.reserve(thread_count);
+
+  Clicker cl;
+
+  for (size_t i = 0; i < thread_count; ++i)
   {
 
-    const size_t block_size = size / thread_count;
+    const size_t begin = i * block_size;
 
-    std::vector<std::future< value_t > > futures;
-    futures.reserve(thread_count);
+    const size_t end = (i == thread_count - 1) ? size : begin + block_size;
 
-    Clicker cl;
-
-    for (size_t i = 0; i < thread_count; ++i)
-    {
-
-      const size_t begin = i * block_size;
-
-      const size_t end = (i == thread_count - 1) ? size : begin + block_size;
-
-      futures.emplace_back(
-          std::async(
-              std::launch::async,
-              sum_range,
-              std::cref(values),
-              begin,
-              end));
-    }
-
-    value_t sum = 0;
-
-    for (auto &f : futures)
-    {
-      sum += f.get();
-    }
-
-    const double time = cl.millisec();
-
-    times.push_back(time);
-    final_sum = sum;
+    futures.emplace_back(
+        std::async(
+            std::launch::async,
+            sum_range,
+            std::cref(values),
+            begin,
+            end));
   }
-  std::sort(times.begin(), times.end());
 
-  const double median = times[times.size() / 2];
-  std::cout << "median ms: " << median << '\n';
+  value_t sum = 0;
+
+  for (auto &f : futures)
+  {
+    sum += f.get();
+  }
+
+  double time = cl.millisec();
+
+  std::cout << time << '\n';
 }
